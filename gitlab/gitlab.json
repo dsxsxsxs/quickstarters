@@ -1,0 +1,117 @@
+{
+    "project": "gitlab",
+    "services": [
+        {
+            "id": "frontend",
+            "apps": [
+                {
+                    "id": "gitlabfront",
+                    "domain": {
+                        "type": "HTTP",
+                        "uri": "$URI"
+                    },
+                    "mem": 512,
+                    "image": "sameersbn/gitlab",
+                    "instances": 1,
+                    "port_mappings": [
+                        {
+                            "container_port": 80,
+                            "protocol":"tcp"
+                        },
+                        {
+                            "container_port": 10080,
+                            "protocol":"tcp"
+                        },
+                        {
+                            "container_port": 10022,
+                            "protocol":"tcp"
+                        }
+                    ],
+                    "env": {
+                        "GITLAB_PORT":"10080",
+                        "GITLAB_SSH_PORT":"10022",
+                        "DB_TYPE":"postgres",
+                        "DB_HOST":"psql.backend.gitlab.$USERNAME",
+                        "DB_NAME": "$DB_NAME",
+                        "DB_USER": "$DB_USER",
+                        "DB_PASS": "$DB_PASS",
+                        "REDIS_HOST":"redis.backend.gitlab.$USERNAME",
+                        "REDIS_PORT":"6379"
+                    },
+                    "volumes": [
+                        {
+                            "container_path": "/home/git/data",
+                            "mode": "RW",
+                            "size": "2000MB"
+                        },
+                        {
+                            "container_path": "/srv/docker/gitlab/gitlab",
+                            "mode": "RW",
+                            "size": "1000MB"
+                        }
+                    ],
+                    "dependencies": [
+                        "../../backend/psql",
+                        "../../backend/redis"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "backend",
+            "apps": [
+                {
+                    "id": "psql",
+                    "mem": 512,
+                    "image": "sameersbn/postgresql:9.4-3",
+                    "instances": 1,
+                    "port_mappings": [
+                        {
+                            "container_port": 5432
+                        }
+                    ],
+                    "volumes": [
+		                {
+		                    "container_path": "/var/lib/postgresql",
+		                    "mode": "RW",
+		                    "size": "1000MB"
+		                },
+                    {
+                        "container_path": "/srv/docker/gitlab/postgresql",
+                        "mode": "RW",
+                        "size": "1000MB"
+                    }
+		            ],
+                    "env": {
+                        "DB_USER": "$DB_USER",
+                        "DB_PASS": "$DB_PASS",
+                        "DB_NAME": "$DB_NAME"
+                    }
+                },
+                {
+                    "id": "redis",
+                    "mem": 512,
+                    "image": "sameersbn/redis:latest",
+                    "instances": 1,
+                    "port_mappings": [
+                        {
+                            "container_port": 6379
+                        }
+                    ],
+                    "volumes": [
+                        {
+                            "container_path": "/var/lib/redis",
+                            "mode": "RW",
+                            "size": "500MB"
+                        },
+                        {
+                            "container_path": "/srv/docker/gitlab/redis",
+                            "mode": "RW",
+                            "size": "500MB"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
